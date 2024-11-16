@@ -1,2 +1,6 @@
 venv/
 3rd_party/
+src/__pycache__/
+src/characteristic_executor/__pycache__/
+src/characteristic_processor/__pycache__/
+src/characteristic_saver/__pycache__/
