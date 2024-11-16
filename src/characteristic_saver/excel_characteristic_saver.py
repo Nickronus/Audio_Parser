@@ -8,7 +8,15 @@ add_relative_path_to_sys(__file__, '../')
 from i_characteristic_saver import ICharacteristicSaver
 
 class ExcelCharacteristicSaver(ICharacteristicSaver):
+    """Сохранитель файлов в Excel.
+    """    
     def save(self, header_and_data: dict[str, list[str]], output_filename: str):
+        """Сохранить файл.
+
+        Args:
+            header_and_data (dict[str, list[str]]): Словарь из заголовков и списка данных для них.
+            output_filename (str): Полное имя сохраняемого фала.
+        """ 
         df = pd.DataFrame(header_and_data)
 
         if not os.path.exists(output_filename):

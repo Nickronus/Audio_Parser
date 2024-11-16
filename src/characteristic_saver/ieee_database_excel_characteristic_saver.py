@@ -5,10 +5,19 @@ from i_characteristic_saver import ICharacteristicSaver
 from characteristic import Characteristic
 
 class IEEEDatabaseExcelCharacteristicSaver(ICharacteristicSaver):
+    """Декоратор к ExcelCharacteristicSaver, добавляющий колонку с информацией о том, является ли человек больным.
+    Информация берётся из названия папок базы данных IEEE Italian Parkinson's Voice and speech.
+    """    
     def __init__(self, excel_characteristic_saver: ICharacteristicSaver):
         self.__excel_characteristic_saver = excel_characteristic_saver
 
     def save(self, header_and_data: dict[str, list[str]], output_filename: str):
+        """Сохранить файл.
+
+        Args:
+            header_and_data (dict[str, list[str]]): Словарь из заголовков и списка данных для них.
+            output_filename (str): Полное имя сохраняемого фала.
+        """ 
         is_sick = 'Is sick'
         header_and_data_node = {is_sick: []}
         header_and_data.update(header_and_data_node)

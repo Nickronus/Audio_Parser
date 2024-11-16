@@ -1,20 +1,24 @@
-from characteristic_executor.abstract_characteristic_executor_creator import AbstractCharacteristicExecutorCreator
+from characteristic_extractor.abstract_characteristic_extractor_creator import AbstractCharacteristicExtractorCreator
 from characteristic_saver.i_characteristic_saver import ICharacteristicSaver
 from characteristic_processor.speech_characteristic_processor import SpeechCharacteristicProcessor
 from characteristic_processor.voice_characteristic_processor import VoiceCharacteristicProcessor
 
 
 class IEEEDatabaseParser():
+    """Анализатор базы данных IEEE "Italian Parkinson's Voice and speech".
+    """    
     def __init__(self, 
-                characteristic_executor_creator: AbstractCharacteristicExecutorCreator,
-                characteristic_saver: ICharacteristicSaver):
-        self.__voice_characteristic_processor = VoiceCharacteristicProcessor(characteristic_executor_creator, characteristic_saver)
-        self.__speech_characteristic_processor = SpeechCharacteristicProcessor(characteristic_executor_creator, characteristic_saver)
+                characteristic_extractor_creator: AbstractCharacteristicExtractorCreator,
+                characteristic_saver: ICharacteristicSaver):     
+        self.__voice_characteristic_processor = VoiceCharacteristicProcessor(characteristic_extractor_creator, characteristic_saver)
+        self.__speech_characteristic_processor = SpeechCharacteristicProcessor(characteristic_extractor_creator, characteristic_saver)
 
     def parse(self):
-        print('Enter folder path: ')
+        """Для файлов из введённой папки с базой данных "Italian Parkinson's Voice and speech" будет проведён анализ.
+        """        
+        print("Enter Italian Parkinson's Voice and speech folder path: ")
         folder_path = input()
-        print('Enter number of experiment: \n Speech experiment - 1 \n Voice experiment - 2')
+        print('Enter number of experiment: \n Voice experiment - 1 \n Speech experiment - 2')
         number_of_experiment = input()
         print('Enter output filename: ')
         output_filename = input()
