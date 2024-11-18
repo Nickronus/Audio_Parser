@@ -32,6 +32,6 @@ class IEEEDatabaseExcelCharacteristicSaver(ICharacteristicSaver):
             else:
                header_and_data[is_sick].append('-')
             
-            header_and_data[Characteristic.FILEPATH.name][i] = filepath.rsplit("/", 1)[-1]
+            header_and_data[Characteristic.FILEPATH.name][i] = filepath.rsplit("\\", 1)[-1]
             
         self.__excel_characteristic_saver.save(header_and_data, output_filename)

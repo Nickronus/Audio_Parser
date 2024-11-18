@@ -41,6 +41,7 @@ class AbstractCharacteristicProcessor(ABC):
         header_and_data_node = {Characteristic.FILEPATH.name: []}
         header_and_data.update(header_and_data_node)
         file_counter = 0
+        print('Start processing.')
         for file_path in file_paths_list:
             characteristic_extractor: ICharacteristicExtractor = \
                 self._characteristic_extractor_creator.create_characteristic_extractor(file_path)
@@ -60,8 +61,9 @@ class AbstractCharacteristicProcessor(ABC):
                 header_and_data[key.name].append(value)
 
             file_counter += 1
-            if (file_counter % 10) == 0:
-                 print(f"Processed files: {file_counter}")
+            print(f"Processed files: {file_counter}", end='\r')
+
+        print('\n')
 
         self._characteristic_saver.save(header_and_data, output_filename)
 

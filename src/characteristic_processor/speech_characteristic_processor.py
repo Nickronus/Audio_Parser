@@ -19,7 +19,7 @@ class SpeechCharacteristicProcessor(AbstractCharacteristicProcessor):
         AbstractCharacteristicProcessor.__init__(self, characteristic_extractor_creator, characteristic_saver)
 
     def _create_characteristic_extractor_methods_list(self, characteristic_extractor: ICharacteristicExtractor) ->list[Callable[[], dict[Characteristic: float]]]:
-        return [characteristic_extractor.get_f0] #,
-            #   characteristic_extractor.get_no_pauses,
-            #    characteristic_extractor.get_intensity_SD]
+        return [characteristic_extractor.get_f0,
+                characteristic_extractor.get_no_pauses,
+                characteristic_extractor.get_intensity_SD]
                 
