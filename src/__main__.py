@@ -11,4 +11,3 @@ if __name__ == '__main__':
     ieee_characteristic_saver: ICharacteristicSaver = IEEEDatabaseExcelCharacteristicSaver(characteristic_saver)
     ieee_database_parser = IEEEDatabaseParser(characteristic_extractor_creator, ieee_characteristic_saver)
     ieee_database_parser.parse()
-    print('Parsed successful.')

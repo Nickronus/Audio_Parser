@@ -43,14 +43,23 @@ class AbstractCharacteristicProcessor(ABC):
         file_counter = 0
         print('Start processing.')
         for file_path in file_paths_list:
-            characteristic_extractor: ICharacteristicExtractor = \
-                self._characteristic_extractor_creator.create_characteristic_extractor(file_path)
+            try:
+                characteristic_extractor: ICharacteristicExtractor = \
+                    self._characteristic_extractor_creator.create_characteristic_extractor(file_path)
+            except Exception as e:
+                print(f"Error: cant create characteristic extractor to {file_path}. [{e}]")
+                continue
+
             methods: list[Callable[[], dict[Characteristic: float]]] = \
                 self._create_characteristic_extractor_methods_list(characteristic_extractor)
             characteristics_dict: dict[Characteristic: float] = {}
 
+            
             for method in methods:
-                characteristics_dict.update(method())
+                try:
+                    characteristics_dict.update(method())
+                except Exception as e:
+                    print(f"Error: cant get characteristic. [{e}]")
 
             header_and_data[Characteristic.FILEPATH.name].append(file_path)
             for key, value in characteristics_dict.items():
@@ -65,7 +74,18 @@ class AbstractCharacteristicProcessor(ABC):
 
         print('\n')
 
-        self._characteristic_saver.save(header_and_data, output_filename)
+        run: bool = True
+        while run:
+            try:
+                self._characteristic_saver.save(header_and_data, output_filename)
+                print('Saved successful.')
+                run = False
+            except Exception as e:
+                print(f"Error: cant save characteristics file. [{e}]")
+                print('Enter "q" to close program, or other key to try save again.')
+                if input() == 'q':
+                    run = False
+
 
     @abstractmethod
     def _create_characteristic_extractor_methods_list(self, characteristic_extractor: ICharacteristicExtractor) ->list[Callable[[], dict[Characteristic: float]]]:
