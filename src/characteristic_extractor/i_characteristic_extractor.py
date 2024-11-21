@@ -9,8 +9,28 @@ class ICharacteristicExtractor(ABC):
     """Интерфейс для извлекателя характеристик.
     """    
     @abstractmethod
-    def get_f0(self) -> dict[Characteristic: float]:
+    def get_f0_mean(self) -> dict[Characteristic: float]:
         """Variations of fundamental frequency, vibration rate of vocal folds."""
+        pass
+
+    @abstractmethod
+    def get_f0_stdev(self) -> dict[Characteristic: float]:
+        #TODO Описание
+        pass
+
+    @abstractmethod
+    def get_f0_min(self) -> dict[Characteristic: float]:
+        #TODO Описание
+        pass
+
+    @abstractmethod
+    def get_f0_max(self) -> dict[Characteristic: float]:
+        #TODO Описание
+        pass
+
+    @abstractmethod
+    def get_f0_range(self) -> dict[Characteristic: float]:
+        #TODO Описание
         pass
 
     @abstractmethod

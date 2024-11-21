@@ -14,13 +14,13 @@ class PraatCharacteristicExtractor(ICharacteristicExtractor):
     """    
 
     __UNIT = 'Hertz'
-    __F0MIN = 20
-    __F0MAX = 500
 
     def __init__(self, file_path: str):
         self.__sound = parselmouth.Sound(file_path)
         self.__pitch = None
         self.__point_process = None
+        self.__f0_min = None
+        self.__f0_max = None
 
         self.__f1 = None
         self.__f2 = None
@@ -31,13 +31,43 @@ class PraatCharacteristicExtractor(ICharacteristicExtractor):
         self.__num_silence_periods = None
         self.__total_silence_duration = None
 
-    def get_f0(self) -> dict[Characteristic: float]:
+    def get_f0_mean(self) -> dict[Characteristic: float]:
         """Variations of fundamental frequency, vibration rate of vocal folds."""
         if not self.__pitch:
             self.__make_pitch()
 
-        f0 = parselmouth.praat.call(self.__pitch, "Get mean", 0, 0, self.__UNIT)
-        return {Characteristic.F0: f0}
+        f0_mean = parselmouth.praat.call(self.__pitch, "Get mean", 0, 0, self.__UNIT)
+        return {Characteristic.F0_MEAN: f0_mean}
+    
+    def get_f0_stdev(self) -> dict[Characteristic: float]:
+        #TODO Описание
+        if not self.__pitch:
+            self.__make_pitch()
+
+        f0_stdev = parselmouth.praat.call(self.__pitch, "Get standard deviation", 0 ,0, self.__UNIT)
+        return {Characteristic.F0_STDEV: f0_stdev}
+    
+    def get_f0_min(self) -> dict[Characteristic: float]:
+        #TODO Описание
+        if not self.__f0_min:
+            self.__extract_f0min_and_f0max()
+
+        return {Characteristic.F0_MIN: self.__f0_min}
+
+    def get_f0_max(self) -> dict[Characteristic: float]:
+        #TODO Описание
+        if not self.__f0_max:
+            self.__extract_f0min_and_f0max()
+
+        return {Characteristic.F0_MAX: self.__f0_max}
+
+    def get_f0_range(self) -> dict[Characteristic: float]:
+        #TODO Описание
+        if not self.__f0_min:
+            self.__extract_f0min_and_f0max()
+
+        f0_range = self.__f0_max - self.__f0_min
+        return {Characteristic.F0_RANGE: f0_range}
 
     def get_jitter_ppq5(self) -> dict[Characteristic: float]:
         """Five-point period perturbation quotient, the average absolute difference between a period 
@@ -64,7 +94,10 @@ class PraatCharacteristicExtractor(ICharacteristicExtractor):
 
     def get_hnr(self) -> dict[Characteristic: float]:
         """Harmonics-to-noise ratio, the amplitude of tonal relative to noise components."""
-        harmonicity = parselmouth.praat.call(self.__sound, "To Harmonicity (cc)", 0.01, self.__F0MIN, 0.1, 1.0)
+        if not self.__f0_min:
+            self.__extract_f0min_and_f0max()
+
+        harmonicity = parselmouth.praat.call(self.__sound, "To Harmonicity (cc)", 0.01, self.__f0_min, 0.1, 1.0)
         hnr = parselmouth.praat.call(harmonicity, "Get mean", 0, 0)
         return {Characteristic.HNR: hnr}
 
@@ -115,15 +148,23 @@ class PraatCharacteristicExtractor(ICharacteristicExtractor):
         return {Characteristic.F4: self.__f4}
 
     def __make_point_process(self):     
-        self.__point_process = parselmouth.praat.call(self.__sound, "To PointProcess (periodic, cc)", self.__F0MIN, self.__F0MAX)
+        if not self.__f0_min:
+            self.__extract_f0min_and_f0max()
+
+        self.__point_process = parselmouth.praat.call(self.__sound, "To PointProcess (periodic, cc)", self.__f0_min, self.__f0_max)
 
     def __make_pitch(self):
-        self.__pitch = parselmouth.praat.call(self.__sound, "To Pitch", 0.0, self.__F0MIN, self.__F0MAX)
+        #self.__pitch = parselmouth.praat.call(self.__sound, "To Pitch", 0.0, self.__f0_min, self.__f0_max)
+        self.__pitch = self.__sound.to_pitch()
 
     def __extract_formants(self):
-        self.__sound = parselmouth.Sound(self.__sound) # read the sound
-        pitch = parselmouth.praat.call(self.__sound, "To Pitch (cc)", 0, self.__F0MIN, 15, 'no', 0.03, 0.45, 0.01, 0.35, 0.14, self.__F0MAX)
-        pointProcess = parselmouth.praat.call(self.__sound, "To PointProcess (periodic, cc)", self.__F0MIN, self.__F0MAX)
+        if not self.__pitch:
+            self.__make_pitch()
+
+        if not self.__f0_min:
+            self.__extract_f0min_and_f0max()
+
+        pointProcess = parselmouth.praat.call(self.__sound, "To PointProcess (periodic, cc)", self.__f0_min, self.__f0_max)
         
         formants = parselmouth.praat.call(self.__sound, "To Formant (burg)", 0.0025, 5, 5000, 0.025, 50)
         numPoints = parselmouth.praat.call(pointProcess, "Get number of points")
@@ -212,3 +253,16 @@ class PraatCharacteristicExtractor(ICharacteristicExtractor):
         # plt.title("График данных") # Заголовок графика
         # plt.grid(True) # Добавление сетки (опционально)
         # plt.show() # Отображение графика
+
+    def __extract_f0min_and_f0max(self):
+        if not self.__pitch:
+            self.__make_pitch()
+
+        f0_values_with_Nan = self.__pitch.selected_array['frequency']
+        #f0_values = f0_values_with_Nan[~np.isnan(f0_values_with_Nan)] # Удаление NaN значений
+        mask = ~np.isnan(f0_values_with_Nan) & (f0_values_with_Nan != 0)
+        f0_values = f0_values_with_Nan[mask]
+
+        # Определение min и max F0
+        self.__f0_min = np.min(f0_values)
+        self.__f0_max = np.max(f0_values)
