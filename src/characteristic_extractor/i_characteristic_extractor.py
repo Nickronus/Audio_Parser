@@ -10,33 +10,38 @@ class ICharacteristicExtractor(ABC):
     """    
     @abstractmethod
     def get_f0_mean(self) -> dict[Characteristic: float]:
-        """Variations of fundamental frequency, vibration rate of vocal folds."""
+        """Average value of the fundamental frequency (F0)."""
         pass
 
     @abstractmethod
     def get_f0_stdev(self) -> dict[Characteristic: float]:
-        #TODO Описание
+        """Standard deviation of the fundamental frequency (F0)."""
         pass
 
     @abstractmethod
     def get_f0_min(self) -> dict[Characteristic: float]:
-        #TODO Описание
+        """Minimum fundamental frequency (F0)."""
         pass
 
     @abstractmethod
     def get_f0_max(self) -> dict[Characteristic: float]:
-        #TODO Описание
+        """Maximum fundamental frequency (F0)."""
         pass
 
     @abstractmethod
     def get_f0_range(self) -> dict[Characteristic: float]:
-        #TODO Описание
+        """The range of the fundamental frequency (the difference between f0_max and f0_min)."""
         pass
 
     @abstractmethod
     def get_jitter_ppq5(self) -> dict[Characteristic: float]:
         """Five-point period perturbation quotient, the average absolute difference between a period 
         and the average of it and its four closest neighbors, divided by the average period."""
+        pass
+
+    @abstractmethod
+    def get_jitter_local(self) -> dict[Characteristic: float]:
+        """Relative deviation of the fundamental tone periods (frequency stability parameter)."""
         pass
 
     @abstractmethod
@@ -60,8 +65,18 @@ class ICharacteristicExtractor(ABC):
         pass
 
     @abstractmethod
-    def get_intensity_SD(self) -> dict[Characteristic: float]:
-        """Variations of average squared amplitude within a predefined time segment (“energy”) after removing silence period exceeding 60 ms."""
+    def get_intensity_mean(self) -> dict[Characteristic: float]:
+        """Average intensity (volume)."""
+        pass
+
+    @abstractmethod
+    def get_intensity_stdev(self) -> dict[Characteristic: float]:
+        """Standard deviation of intensity."""
+        pass
+
+    @abstractmethod
+    def get_intensity_range(self) -> dict[Characteristic: float]:
+        """Intensity range (the difference between maximum and minimum volume)."""
         pass
 
     @abstractmethod
@@ -83,3 +98,9 @@ class ICharacteristicExtractor(ABC):
     def get_f4(self) -> dict[Characteristic: float]:
         """Formant f4"""
         pass
+
+    @abstractmethod
+    def get_total_duration(self) -> dict[Characteristic: float]:
+        """Duration"""
+        pass
+

@@ -12,9 +12,6 @@ class PraatCharacteristicExtractor(ICharacteristicExtractor):
     """Извлекатель характеристик аудиофайла. Работает с библиотекой parselmouth (Praat).
     Основная часть скриптов была взята тут https://github.com/drfeinberg/PraatScripts
     """    
-
-    __UNIT = 'Hertz'
-
     def __init__(self, file_path: str):
         self.__sound = parselmouth.Sound(file_path)
         self.__pitch = None
@@ -27,42 +24,40 @@ class PraatCharacteristicExtractor(ICharacteristicExtractor):
         self.__f3 = None
         self.__f4 = None
 
-        self.__relevant_rms = []
-        self.__num_silence_periods = None
-        self.__total_silence_duration = None
+        self.__intensity = None
 
     def get_f0_mean(self) -> dict[Characteristic: float]:
-        """Variations of fundamental frequency, vibration rate of vocal folds."""
+        """Average value of the fundamental frequency (F0)."""
         if not self.__pitch:
             self.__make_pitch()
 
-        f0_mean = parselmouth.praat.call(self.__pitch, "Get mean", 0, 0, self.__UNIT)
+        f0_mean = parselmouth.praat.call(self.__pitch, "Get mean", 0, 0, 'Hertz')
         return {Characteristic.F0_MEAN: f0_mean}
     
     def get_f0_stdev(self) -> dict[Characteristic: float]:
-        #TODO Описание
+        """Standard deviation of the fundamental frequency (F0)."""
         if not self.__pitch:
             self.__make_pitch()
 
-        f0_stdev = parselmouth.praat.call(self.__pitch, "Get standard deviation", 0 ,0, self.__UNIT)
+        f0_stdev = parselmouth.praat.call(self.__pitch, "Get standard deviation", 0 ,0, 'Hertz')
         return {Characteristic.F0_STDEV: f0_stdev}
     
     def get_f0_min(self) -> dict[Characteristic: float]:
-        #TODO Описание
+        """Minimum fundamental frequency (F0)."""
         if not self.__f0_min:
             self.__extract_f0min_and_f0max()
 
         return {Characteristic.F0_MIN: self.__f0_min}
 
     def get_f0_max(self) -> dict[Characteristic: float]:
-        #TODO Описание
+        """Maximum fundamental frequency (F0)."""
         if not self.__f0_max:
             self.__extract_f0min_and_f0max()
 
         return {Characteristic.F0_MAX: self.__f0_max}
 
     def get_f0_range(self) -> dict[Characteristic: float]:
-        #TODO Описание
+        """The range of the fundamental frequency (the difference between f0_max and f0_min)."""
         if not self.__f0_min:
             self.__extract_f0min_and_f0max()
 
@@ -78,6 +73,14 @@ class PraatCharacteristicExtractor(ICharacteristicExtractor):
         ppq5_jitter = parselmouth.praat.call(self.__point_process, "Get jitter (ppq5)", 0, 0, 0.0001, 0.02, 1.3)
 
         return {Characteristic.JITTER_PPQ5: ppq5_jitter}
+    
+    def get_jitter_local(self) -> dict[Characteristic: float]:
+        """Relative deviation of the fundamental tone periods (frequency stability parameter)."""
+        if not self.__point_process:
+            self.__make_point_process()
+
+        local_jitter =  parselmouth.praat.call(self.__point_process, "Get jitter (local)", 0, 0, 0.0001, 0.02, 1.3)
+        return {Characteristic.JITTER_LOCAL: local_jitter}
 
     def get_shimmer_local(self) -> dict[Characteristic: float]:
         """Average absolute difference between the amplitudes of consecutive periods, divided by the average amplitude."""
@@ -103,21 +106,34 @@ class PraatCharacteristicExtractor(ICharacteristicExtractor):
 
     def get_no_pauses(self) -> dict[Characteristic: float]:
         """The number of all pauses compared to total time duration, after removing silence period not lasting more than 60 ms."""
-        if len(self.__relevant_rms) == 0 or not self.__num_silence_periods or not self.__total_silence_duration_ms:
-            self.__make_relevant_rms_and_num_silence_periods()
+        pass
 
-        sound_duration_without_silence = self.__sound.duration - self.__total_silence_duration
-        return {Characteristic.NO_PAUSES: (self.__num_silence_periods / sound_duration_without_silence)}
+    def get_intensity_mean(self) -> dict[Characteristic: float]:
+        """Average intensity (volume)."""
+        if not self.__intensity:
+            self.__intensity = self.__sound.to_intensity()
 
-    def get_intensity_SD(self) -> dict[Characteristic: float]:
-        """Variations of average squared amplitude within a predefined time segment (“energy”) after removing silence period exceeding 60 ms."""
-        if len(self.__relevant_rms) == 0:
-            self.__make_relevant_rms_and_num_silence_periods()
+        intensity_mean = parselmouth.praat.call(self.__intensity, "Get mean", 0, 0)
+        return {Characteristic.INTENSITY_MEAN: intensity_mean}
 
-        if len(self.__relevant_rms) > 0:
-            return {Characteristic.INTENSITY_SD: np.sqrt(np.mean(10**(self.__relevant_rms/10)))}
-        else:
-            return {Characteristic.INTENSITY_SD: 0.0}
+    def get_intensity_stdev(self) -> dict[Characteristic: float]:
+        """Standard deviation of intensity."""
+        if not self.__intensity:
+            self.__intensity = self.__sound.to_intensity()
+
+        intensity_stdev = parselmouth.praat.call(self.__intensity, "Get standard deviation", 0 ,0)
+        return {Characteristic.INTENSITY_STDEV: intensity_stdev}
+
+    def get_intensity_range(self) -> dict[Characteristic: float]:
+        """Intensity range (the difference between maximum and minimum volume)."""
+        if not self.__intensity:
+            self.__intensity = self.__sound.to_intensity()
+
+        min_intensity = parselmouth.praat.call(self.__intensity, "Get minimum", 0, 0, "Parabolic")
+        #max_intensity = call(intensity, "Get maximum", 0, 0, "Parabolic")
+        max_99_intensity = parselmouth.praat.call(self.__intensity, "Get quantile", 0, 0, 0.99)
+        i_range = max_99_intensity - min_intensity
+        return {Characteristic.INTENSITY_RANGE: i_range}
 
     def get_f1(self) -> dict[Characteristic: float]:
         """Formant f1"""        
@@ -146,6 +162,11 @@ class PraatCharacteristicExtractor(ICharacteristicExtractor):
             self.__extract_formants()
         
         return {Characteristic.F4: self.__f4}
+    
+    def get_total_duration(self) -> dict[Characteristic: float]:
+        """Duration"""
+        duration = self.__sound.get_total_duration()
+        return {Characteristic.DURATION: duration}
 
     def __make_point_process(self):     
         if not self.__f0_min:
@@ -209,50 +230,6 @@ class PraatCharacteristicExtractor(ICharacteristicExtractor):
         self.__f2 = f2_median
         self.__f3 = f3_median
         self.__f4 = f4_median
-
-        #return f1_mean, f2_mean, f3_mean, f4_mean, f1_median, f2_median, f3_median, f4_median
-
-    def __make_relevant_rms_and_num_silence_periods(self):
-        silence_threshold_ms = 60
-        snd = self.__sound
-        rms = snd.to_intensity().values.T
-        rms = 10 * np.log10(rms + 1e-12)  # Преобразование в dB
-
-        silence_threshold = np.mean(rms) - 3  #TODO Какой ставить порог тишины? (Сейчас - 3 дб от средней)
-        silence_indices = np.where(rms < silence_threshold)[0]
-
-        silence_segments = []
-        start_silence = -1
-        for i in range(len(silence_indices)):
-            if start_silence == -1:
-                start_silence = silence_indices[i]
-            elif silence_indices[i] - silence_indices[i - 1] > 1:
-                silence_segments.append((start_silence, silence_indices[i - 1]))
-                start_silence = silence_indices[i]
-        if start_silence != -1:
-            silence_segments.append((start_silence, silence_indices[-1]))
-
-        total_silence_duration_ms = 0
-        self.__num_silence_periods = len(silence_segments)
-
-        for start, end in silence_segments:
-            duration_ms = (end - start +1) / snd.sampling_frequency * 1000  # +1 to include both start and end points
-            if duration_ms > silence_threshold_ms:
-                rms[start:end + 1] = np.nan
-            total_silence_duration_ms += duration_ms
-
-        self.__total_silence_duration = total_silence_duration_ms / 1000
-        self.__relevant_rms = rms[~np.isnan(rms)]  # Удаление NaN значений
-
-        # import matplotlib.pyplot as plt
-
-        # data = rms
-        # plt.plot(data) # Построение графика
-        # plt.xlabel("Индекс") # Подпись оси X
-        # plt.ylabel("Значение") # Подпись оси Y
-        # plt.title("График данных") # Заголовок графика
-        # plt.grid(True) # Добавление сетки (опционально)
-        # plt.show() # Отображение графика
 
     def __extract_f0min_and_f0max(self):
         if not self.__pitch:

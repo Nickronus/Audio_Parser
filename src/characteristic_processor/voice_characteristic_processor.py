@@ -20,6 +20,7 @@ class VoiceCharacteristicProcessor(AbstractCharacteristicProcessor):
 
     def _create_characteristic_extractor_methods_list(self, characteristic_extractor: ICharacteristicExtractor) ->list[Callable[[], dict[Characteristic: float]]]:
         return [characteristic_extractor.get_jitter_ppq5,
+                characteristic_extractor.get_jitter_local,
                 characteristic_extractor.get_shimmer_local,
             #    characteristic_extractor.get_nhr,
                 characteristic_extractor.get_hnr,
@@ -31,4 +32,8 @@ class VoiceCharacteristicProcessor(AbstractCharacteristicProcessor):
                 characteristic_extractor.get_f1,
                 characteristic_extractor.get_f2,
                 characteristic_extractor.get_f3,
-                characteristic_extractor.get_f4]
+                characteristic_extractor.get_f4,
+                characteristic_extractor.get_intensity_mean,
+                characteristic_extractor.get_intensity_stdev,
+                characteristic_extractor.get_intensity_range,
+                characteristic_extractor.get_total_duration]

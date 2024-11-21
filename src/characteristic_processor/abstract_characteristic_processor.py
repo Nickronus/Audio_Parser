@@ -52,14 +52,14 @@ class AbstractCharacteristicProcessor(ABC):
 
             methods: list[Callable[[], dict[Characteristic: float]]] = \
                 self._create_characteristic_extractor_methods_list(characteristic_extractor)
-            characteristics_dict: dict[Characteristic: float] = {}
-
             
-            for method in methods:
-                try:
+            try:
+                characteristics_dict: dict[Characteristic: float] = {}
+                for method in methods:
                     characteristics_dict.update(method())
-                except Exception as e:
-                    print(f"Error: cant get characteristic. [{e}]")
+            except Exception as e:
+                print(f"Error: cant get characteristic. [{e}]")
+                continue
 
             header_and_data[Characteristic.FILEPATH.name].append(file_path)
             for key, value in characteristics_dict.items():
