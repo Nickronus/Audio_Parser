@@ -2,10 +2,7 @@ import parselmouth
 import statistics
 import numpy as np
 
-from path_resolve.core import add_relative_path_to_sys
-add_relative_path_to_sys(__file__, '../')
-
-from i_characteristic_extractor import ICharacteristicExtractor
+from characteristic_extractor.i_characteristic_extractor import ICharacteristicExtractor
 from characteristic import Characteristic
 
 class PraatCharacteristicExtractor(ICharacteristicExtractor):

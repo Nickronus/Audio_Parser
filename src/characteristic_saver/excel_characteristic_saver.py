@@ -2,10 +2,7 @@ import pandas as pd
 import os
 import openpyxl
 
-from path_resolve.core import add_relative_path_to_sys
-add_relative_path_to_sys(__file__, '../')
-
-from i_characteristic_saver import ICharacteristicSaver
+from characteristic_saver.i_characteristic_saver import ICharacteristicSaver
 
 class ExcelCharacteristicSaver(ICharacteristicSaver):
     """Сохранитель файлов в Excel.

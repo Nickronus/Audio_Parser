@@ -1,17 +1,9 @@
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 
-#: Callable[[str, bytes, Callable[[bytes], None]], None]
-# from path_resolve.core import add_relative_path_to_sys
-# add_relative_path_to_sys(__file__, '../framework')
-
-from path_resolve.core import add_relative_path_to_sys
-add_relative_path_to_sys(__file__, '../')
-
 from characteristic import Characteristic
 from characteristic_extractor.abstract_characteristic_extractor_creator import AbstractCharacteristicExtractorCreator
 from characteristic_saver.i_characteristic_saver import ICharacteristicSaver
-
 from characteristic_extractor.i_characteristic_extractor import ICharacteristicExtractor
 from file_paths_extractor import FilePathsExtractor
 from characteristic_extractor.abstract_characteristic_extractor_creator import AbstractCharacteristicExtractorCreator

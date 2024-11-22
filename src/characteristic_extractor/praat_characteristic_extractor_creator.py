@@ -1,7 +1,6 @@
-from abstract_characteristic_extractor_creator import AbstractCharacteristicExtractorCreator
-
-from i_characteristic_extractor import ICharacteristicExtractor
-from praat_characteristic_extractor import PraatCharacteristicExtractor
+from characteristic_extractor.abstract_characteristic_extractor_creator import AbstractCharacteristicExtractorCreator
+from characteristic_extractor.i_characteristic_extractor import ICharacteristicExtractor
+from characteristic_extractor.praat_characteristic_extractor import PraatCharacteristicExtractor
 
 class PraatCharacteristicExtractorCreator(AbstractCharacteristicExtractorCreator):
     """Фабрика для создания извлекателей характеристик при помощи parselmouth (Praat).
