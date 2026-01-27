@@ -2,6 +2,7 @@ from characteristic_extractor.abstract_characteristic_extractor_creator import A
 from characteristic_saver.i_characteristic_saver import ICharacteristicSaver
 from characteristic_processor.speech_characteristic_processor import SpeechCharacteristicProcessor
 from characteristic_processor.voice_characteristic_processor import VoiceCharacteristicProcessor
+from file_paths_extractor import FilePathsExtractor
 
 
 class IEEEDatabaseParser():
@@ -22,10 +23,11 @@ class IEEEDatabaseParser():
         number_of_experiment = input()
         print('Enter output filename: ')
         output_filename = input()
-
         match number_of_experiment:
             case '1':
-                self.__voice_characteristic_processor.process(folder_path, ["^VA", "^VA", "^VE", "^VI", "^VO", "^VU"], output_filename)
+                file_paths_list:list[str] = FilePathsExtractor.extract(folder_path, ["^VA", "^VA", "^VE", "^VI", "^VO", "^VU"])
+                self.__voice_characteristic_processor.process(file_paths_list, output_filename)
 
             case '2':
-                self.__speech_characteristic_processor.process(folder_path, ["^B1", "^B2", "^FB", "^D1", "^D2"], output_filename)
+                file_paths_list:list[str] = FilePathsExtractor.extract(folder_path, ["^B1", "^B2", "^FB", "^D1", "^D2"])
+                self.__speech_characteristic_processor.process(file_paths_list, output_filename)
